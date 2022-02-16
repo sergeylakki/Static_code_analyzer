@@ -2,7 +2,6 @@ import sys
 import os
 import re
 import ast
-# write your code here
 
 class Static_code_analiz:
 
@@ -25,20 +24,19 @@ class Static_code_analiz:
         self.lines = []
         self.path = file
         with open(file, 'r') as f:
-            #self.tree = ast.parse(f.read())
-            #print(ast.dump(self.tree))
+
             for line in f.readlines():
-                #print(line)
                 self.lines.append(line)
+
         with open(file, 'r') as f:
             self.tree = ast.parse(f.read())
-        #print(len(self.lines))
+
         for n_line, line in enumerate(self.lines):
             self.lines_should_not_exceed(n_line, line)
             self.indentation_is_not_a_multiple_of_four(n_line, line)
             self.unnecessary_semicolon(n_line, line)
             self.least_two_spaces_comments(n_line, line)
-            self.TODO_found(n_line, line)
+            self.todo_found(n_line, line)
             self.more_two_blank_lines(n_line, line)
             self.class_name_should_be_written_in_camel_case(n_line, line)
             self.function_name_should_be_written_in_snake_case(n_line, line)
@@ -89,7 +87,7 @@ class Static_code_analiz:
             if index > 2 and (line[index-1] != ' ' or line[index-2] != ' '):
                 self.print_error(n_line + 1, "S004")
 
-    def TODO_found(self, n_line, line):
+    def todo_found(self, n_line, line):
         if '#' in line:
             index = line.index('#')
             index = line[index:].upper().find('TODO')
@@ -97,7 +95,6 @@ class Static_code_analiz:
                 self.print_error(n_line + 1, "S005")
 
     def more_two_blank_lines(self, n_line, line):
-        #print(len(line.strip()), '1:',len(self.lines[n_line-1].strip()), ",2:", len(self.lines[n_line-2].strip()), ",3:", len(self.lines[n_line-3].strip()) )
         if len(line.strip()) != 0 and n_line > 2:
             if len(self.lines[n_line-1].strip()) == 0 and len(self.lines[n_line-2].strip()) == 0 and len(self.lines[n_line-3].strip()) == 0:
                 self.print_error(n_line + 1, "S006")
@@ -130,16 +127,11 @@ class Static_code_analiz:
         temp_var = r"^[a-z_]+$"
         for node in ast.walk(self.tree):
             if isinstance(node, ast.FunctionDef):
-                #function_name = node.name
-                #args_def = [item.value for item in node.args.defaults]
                 n_line = node.lineno
                 args = [item.arg for item in node.args.args]
                 for arg in args:
                     if not re.match(temp_var, arg):
                         self.print_error(n_line, "S010")
-                # print(node.value.value)
-                # print(node.targets[0].id)
-                #print(f'name:{function_name}, args:{args},default={args_def}')
 
     def var_name_should_be_written_in_snake_case(self):
         vars = set()
@@ -147,18 +139,13 @@ class Static_code_analiz:
         for node in ast.walk(self.tree):
             if isinstance(node, ast.Assign):
                 try:
-
-                    #print(node.targets[0].id)
                     name = node.targets[0].id
-                    #print(name, re.match(temp_var, name))
-                    #value = node.value.value
                     n_line = node.lineno
 
                     if re.match(temp_var, name) is None and name not in vars:
-                        #print('error')
-                        #print(f"Line {n_line}: {name}={value}")
                         self.print_error(n_line, "S011")
                         vars.add(name)
+
                 except AttributeError:
                     continue
 
@@ -170,7 +157,6 @@ class Static_code_analiz:
                     try:
                         if not (re.match(temp_arg, str(item.value)) or str(item.value) == 'None'):
                             n_line = node.lineno
-                            print(item.value)
                             self.print_error(n_line, "S012")
                     except AttributeError:
                         n_line = node.lineno
@@ -181,7 +167,6 @@ class Static_code_analiz:
         if message is None:
             message = self.code[code]
         self.error.append({'line': line, 'code': code, 'message': message})
-        #print(f"{self.path}: Line {line}: {code} {message}")
 
     def print_error_end(self):
         self.error.sort(key=lambda x: x['line'])
@@ -203,9 +188,8 @@ def parsing_args(args):
     paths.sort(key=lambda x: int(x[-4]))
     return paths
 
-args = sys.argv  # we get the list of arguments
+args = sys.argv
 list = parsing_args(args)
-
 
 for dir in list:
     code_chek = Static_code_analiz(dir)
